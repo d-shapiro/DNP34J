@@ -12,6 +12,8 @@ public class Database implements DataMapFeatures {
 	private HashMap<Integer, DataBuffer> counterInputPoints;
 	private HashMap<Integer, DataBuffer> analogInputPoints;
 	private HashMap<Integer, DataBuffer> analogOutputPoints;
+	
+	private Handler callback;
 
 	public Database() {
 		binaryInputPoints = new HashMap<Integer, DataBuffer>();
@@ -19,6 +21,10 @@ public class Database implements DataMapFeatures {
 		counterInputPoints = new HashMap<Integer, DataBuffer>();
 		analogInputPoints = new HashMap<Integer, DataBuffer>();
 		analogOutputPoints = new HashMap<Integer, DataBuffer>();
+	}
+	
+	public void setCallback(Handler handler) {
+		callback = handler;
 	}
 
 	public List<DataElement> readBinaryInputPoint(int index) {
@@ -37,6 +43,7 @@ public class Database implements DataMapFeatures {
 
 	public void writeRecord(DataElement element) {
 		getDataBuffer(element.getIndex(), element.getGroup()).insert(element);
+		if (callback != null) callback.dataChanged(element);
 	}
 
 	public List<DataElement> read(int index, int group) {
@@ -138,6 +145,10 @@ public class Database implements DataMapFeatures {
 	public void setAnalogOutputPoints(
 			HashMap<Integer, DataBuffer> analogOutputPoints) {
 		this.analogOutputPoints = analogOutputPoints;
+	}
+	
+	public static interface Handler {
+		public void dataChanged(DataElement element);
 	}
 
 }
