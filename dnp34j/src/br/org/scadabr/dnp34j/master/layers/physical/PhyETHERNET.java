@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 
 /**
@@ -61,36 +62,29 @@ public class PhyETHERNET implements InitFeatures {
 
 		boolean connectionAccepted = false;
 
-		if (DEBUG) {
-			System.out.println("Trying to connect to:");
-			System.out.println("http://" + host + ":" + port);
-		}
+		DNPLogger.LOGGER.debug("Trying to connect to:");
+		DNPLogger.LOGGER.debug("http://" + host + ":" + port);
 
 		try {
 			socket = new Socket(host, port);
 
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			DNPLogger.LOGGER.error("", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			DNPLogger.LOGGER.error("", e);
 		}
 
-		if (DEBUG) {
-			System.out.println("Created socket:");
-			System.out.println(socket);
-		}
+		DNPLogger.LOGGER.debug("Created socket:");
+		DNPLogger.LOGGER.debug(socket.toString());
+			
 		while (!connectionAccepted) {
 			connectionAccepted = true;
 
-			if (DEBUG) {
-				System.out.println("[PhyLayer] Attempting to connect "
+			DNPLogger.LOGGER.debug("[PhyLayer] Attempting to connect "
 						+ phyLayer.getUri());
-			}
 		}
 
-		if (DEBUG) {
-			System.out.println("[PhyLayer] Connected to " + phyLayer.getUri());
-		}
+		DNPLogger.LOGGER.debug("[PhyLayer] Connected to " + phyLayer.getUri());
 
 		try {
 			setOutputStream(socket.getOutputStream());
@@ -98,7 +92,7 @@ public class PhyETHERNET implements InitFeatures {
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			DNPLogger.LOGGER.error("", e);
 		}
 	}
 
@@ -117,7 +111,7 @@ public class PhyETHERNET implements InitFeatures {
 				socket.close();
 		} catch (IOException e) {
 			String msg = "[PhyETHERNET] - socket.close() failed. Exception throwed!";
-			e.printStackTrace();
+			DNPLogger.LOGGER.error("", e);
 			throw new Exception(msg, e);
 		}
 	}

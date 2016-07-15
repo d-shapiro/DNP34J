@@ -1,5 +1,6 @@
 package br.org.scadabr.dnp34j.master.layers.application;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.AppFeatures;
 import br.org.scadabr.dnp34j.master.common.DataMapFeatures;
 import br.org.scadabr.dnp34j.master.common.DataObject;
@@ -62,9 +63,7 @@ public class AppSnd extends Thread implements AppFeatures, InitFeatures,
 				send(false); // OK, go !
 			}
 		} catch (Throwable t) {
-			System.out.print("[MasterAppSnd] ");
-			t.printStackTrace();
-			System.out.println(t);
+			DNPLogger.LOGGER.error("[MasterAppSnd] ", t);
 		}
 	}
 
@@ -365,10 +364,8 @@ public class AppSnd extends Thread implements AppFeatures, InitFeatures,
 		// transmit this application frame to transport layer
 		transportLayer.buildTransportMsg(frameRcv);
 
-		if (DEBUG) {
-			System.out.println("[ApplicationLayer] Sending frame"
+		DNPLogger.LOGGER.debug("[ApplicationLayer] Sending frame"
 					+ Utils.Display(frameRcv.value()));
-		}
 
 	}
 

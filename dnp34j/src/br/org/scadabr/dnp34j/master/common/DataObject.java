@@ -12,6 +12,7 @@ package br.org.scadabr.dnp34j.master.common;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.utils.Utils;
 
 /**
@@ -379,9 +380,7 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 			}
 		}
 
-		if (DEBUG) {
-			System.out.println(s);
-		}
+		DNPLogger.LOGGER.debug(s);
 	}
 
 	// ////////////////////////////////////////////////////////////////////////

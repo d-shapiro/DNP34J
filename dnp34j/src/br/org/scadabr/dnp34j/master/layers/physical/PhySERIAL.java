@@ -3,6 +3,7 @@ package br.org.scadabr.dnp34j.master.layers.physical;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 
 import com.serotonin.io.serial.SerialParameters;
@@ -46,13 +47,9 @@ public class PhySERIAL implements InitFeatures {
     }
 
     private void initialize(PhyLayer phyLayer) throws Exception {
-        if (DEBUG) {
-            System.out.print("[PhyLayer] Located Serial Ports : ");
-        }
+        DNPLogger.LOGGER.debug("[PhyLayer] Located Serial Ports : ");
 
-        if (DEBUG) {
-            System.out.println("\n Open port " + phyLayer.getUri());
-        }
+        DNPLogger.LOGGER.debug("Open port " + phyLayer.getUri());
 
         try {
             setCommPortId(phyLayer.getCommAddress());
@@ -85,7 +82,7 @@ public class PhySERIAL implements InitFeatures {
         }
         catch (SerialPortException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+        	DNPLogger.LOGGER.error("", e);
         }
 
         setInputStream(serialPort.getInputStream());
@@ -148,7 +145,7 @@ public class PhySERIAL implements InitFeatures {
                         // serialPort.close();
                     }
                     catch (Exception e) {
-                        e.printStackTrace();
+                    	DNPLogger.LOGGER.error("", e);
                     }
                 }
             });
@@ -160,7 +157,7 @@ public class PhySERIAL implements InitFeatures {
                     t.interrupt();
             }
             catch (InterruptedException e) {
-                e.printStackTrace();
+            	DNPLogger.LOGGER.error("", e);
             }
         }
     }

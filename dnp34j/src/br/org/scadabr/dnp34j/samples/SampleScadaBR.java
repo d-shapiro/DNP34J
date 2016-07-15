@@ -1,5 +1,6 @@
 package br.org.scadabr.dnp34j.samples;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.session.config.EthernetParameters;
 
 public class SampleScadaBR {
@@ -18,15 +19,15 @@ public class SampleScadaBR {
 
         for (int i = 0; i < 20000; i++) {
             try {
-                System.out.println(" ");
-                System.out.println("Poll: " + i);
+            	DNPLogger.LOGGER.info(" ");
+            	DNPLogger.LOGGER.info("Poll: " + i);
                 master.doPoll();
                 printPoints();
-                System.out.println(" ");
+                DNPLogger.LOGGER.info(" ");
                 Thread.sleep(1000);
             }
             catch (Exception e) {
-                System.out.println(e.getMessage());
+            	DNPLogger.LOGGER.info(e.getMessage());
             }
         }
 
@@ -34,7 +35,7 @@ public class SampleScadaBR {
             master.terminate();
         }
         catch (Exception e) {
-            e.printStackTrace();
+        	DNPLogger.LOGGER.error("", e);
         }
 
     }
@@ -42,11 +43,11 @@ public class SampleScadaBR {
     private static void printPoints() throws Exception {
         for (int i = 0; i < 50; i++) {
             if (i % 5 == 0) {
-                System.out.println("");
-                System.out.print(master.getElement((byte) 0, i).getValue() + " / ");
+            	DNPLogger.LOGGER.info("");
+            	DNPLogger.LOGGER.info(master.getElement((byte) 0, i).getValue() + " / ");
             }
             else
-                System.out.print(master.getElement((byte) 0, i).getValue() + " / ");
+            	DNPLogger.LOGGER.info(master.getElement((byte) 0, i).getValue() + " / ");
         }
     }
 }

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 import br.org.scadabr.dnp34j.master.common.LnkFeatures;
 import br.org.scadabr.dnp34j.master.common.utils.Buffer;
@@ -120,8 +121,8 @@ public class PhyLayer implements LnkFeatures, InitFeatures {
             }
         }
         catch (Exception e) {
-            System.out.println("[PhyLayer] - reconnect() failed");
-            e.printStackTrace();
+        	DNPLogger.LOGGER.info("[PhyLayer] - reconnect() failed");
+        	DNPLogger.LOGGER.error("", e);
             throw new Exception(e);
         }
     }
@@ -163,17 +164,13 @@ public class PhyLayer implements LnkFeatures, InitFeatures {
                     outputStream.flush();
                 }
                 catch (ArrayIndexOutOfBoundsException e) {
-                    if (DEBUG) {
-                        System.out.println("[PhyLayer] outPut down");
-                    }
+                    DNPLogger.LOGGER.debug("[PhyLayer] outPut down");
                 }
             }
         }
         catch (IOException e) {
-            if (DEBUG) {
-                System.out.println("[PhyLayer] Writing Exception");
-                System.out.println("[PhyLayer] Remote Connection closed.");
-            }
+            DNPLogger.LOGGER.debug("[PhyLayer] Writing Exception");
+            DNPLogger.LOGGER.debug("[PhyLayer] Remote Connection closed.");
         }
     }
 

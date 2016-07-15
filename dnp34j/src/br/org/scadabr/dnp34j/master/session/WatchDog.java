@@ -1,5 +1,7 @@
 package br.org.scadabr.dnp34j.master.session;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
+
 public class WatchDog extends Thread {
 	private DNPUser user;
 	private boolean STOP;
@@ -9,22 +11,22 @@ public class WatchDog extends Thread {
 	}
 
 	public void run() {
-		System.out.println("[Watchdog] Started!");
+		DNPLogger.LOGGER.info("[Watchdog] Started!");
 		STOP = false;
 		while (!STOP) {
 			if (!user.getAppRcv().isAlive())
-				System.out.print("appRcv is dead!");
+				DNPLogger.LOGGER.info("appRcv is dead!");
 			if (!user.getAppSnd().isAlive())
-				System.out.print("appSnd is dead!");
+				DNPLogger.LOGGER.info("appSnd is dead!");
 			if (!user.getLnkRcv().isAlive())
-				System.out.print("lnkRcv is dead!");
+				DNPLogger.LOGGER.info("lnkRcv is dead!");
 			if (!user.getLnkSnd().isAlive())
-				System.out.print("lnkSnd is dead!");
+				DNPLogger.LOGGER.info("lnkSnd is dead!");
 
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				DNPLogger.LOGGER.error("", e);
 			}
 		}
 	}

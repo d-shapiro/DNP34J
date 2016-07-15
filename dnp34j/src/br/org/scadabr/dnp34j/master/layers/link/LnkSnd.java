@@ -1,5 +1,6 @@
 package br.org.scadabr.dnp34j.master.layers.link;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 import br.org.scadabr.dnp34j.master.common.LnkFeatures;
 import br.org.scadabr.dnp34j.master.common.utils.Buffer;
@@ -94,8 +95,7 @@ public class LnkSnd extends Thread implements LnkFeatures, InitFeatures {
                         break;
                     }
 
-                    if (DEBUG)
-                        System.out.println("LnkSnd error");
+                    DNPLogger.LOGGER.debug("LnkSnd error");
 
                     /*
                      * enters here if - confirmation is expected and -
@@ -122,8 +122,7 @@ public class LnkSnd extends Thread implements LnkFeatures, InitFeatures {
             // end while (run)
         }
         catch (Throwable t) {
-            System.out.print("[MasterLnkSnd] ");
-            System.out.println(t);
+        	DNPLogger.LOGGER.error("[MasterLnkSnd] ", t);
         }
     }
 
@@ -160,9 +159,7 @@ public class LnkSnd extends Thread implements LnkFeatures, InitFeatures {
         frameSnd.getBuffer()[3] |= FC;
         frameSnd.writeBytes(DnpCrc.makeCRC(frameSnd.value()));
 
-        if (DEBUG) {
-            System.out.println("[LinkLayer] send secondary msg" + Utils.Display(frameSnd.value()));
-        }
+        DNPLogger.LOGGER.debug("[LinkLayer] send secondary msg" + Utils.Display(frameSnd.value()));
 
         write(frameSnd.readBytes());
     }
@@ -192,9 +189,8 @@ public class LnkSnd extends Thread implements LnkFeatures, InitFeatures {
             frameSnd.writeBytes(frag);
             frameSnd.writeBytes(DnpCrc.makeCRC(frag));
         }
-        if (DEBUG) {
-            System.out.println("[LinkLayer] send primary msg" + Utils.Display(frameSnd.value()));
-        }
+        
+        DNPLogger.LOGGER.debug("[LinkLayer] send primary msg" + Utils.Display(frameSnd.value()));
 
         // store current frame for possible retries
         previousFrameSnd.reset();

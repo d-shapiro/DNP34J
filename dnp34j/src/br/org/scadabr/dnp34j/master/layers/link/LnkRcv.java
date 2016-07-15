@@ -2,6 +2,7 @@ package br.org.scadabr.dnp34j.master.layers.link;
 
 import java.io.IOException;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 import br.org.scadabr.dnp34j.master.common.LnkFeatures;
 import br.org.scadabr.dnp34j.master.common.utils.Buffer;
@@ -97,8 +98,8 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
             // setLnkMaxRetries(config.getMAX_LNK_RETRIES());
         }
         catch (Exception e) {
-            System.out.println("[LnkRcv] - Retrieval of DNPConfig attributes failed");
-            System.out.println("[LnkRcv] - Exception throwed");
+        	DNPLogger.LOGGER.info("[LnkRcv] - Retrieval of DNPConfig attributes failed");
+        	DNPLogger.LOGGER.info("[LnkRcv] - Exception throwed");
             throw new Exception(e);
         }
 
@@ -138,13 +139,11 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
         sendPrimaryMsg(RESET_LINK);
 
         if (!lnkSnd.getConLnkSndLock().waiting(lnkTimeout)) {
-            System.out.println("timeout exceed");
+        	DNPLogger.LOGGER.info("timeout exceed");
             init();
         }
 
-        if (DEBUG) {
-            System.out.println("[LinkLayer] initialized");
-        }
+        DNPLogger.LOGGER.debug("[LinkLayer] initialized");
     }
 
     public boolean initLink(long timeout) throws Exception {
@@ -199,15 +198,13 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
                     break;
                 }
 
-                if (DEBUG) {
-                    System.out.println("[LinkLayer] received " + Utils.Display(frameRcv.value()));
-                }
+                DNPLogger.LOGGER.debug("[LinkLayer] received " + Utils.Display(frameRcv.value()));
 
                 // header CRC check
                 error = !DnpCrc.checkCRC(frameRcv.value(0, 9));
 
-                if (DEBUG && error) {
-                    System.out.println("[LinkLayer] error header CRC check");
+                if (error) {
+                	DNPLogger.LOGGER.debug("[LinkLayer] error header CRC check");
                 }
 
                 if (rightAddress()) {
@@ -227,9 +224,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
             // Ignore
         }
         catch (Exception t) {
-            System.out.print("[MasterLnkRcv] ");
-            t.printStackTrace();
-            System.out.println(t);
+        	DNPLogger.LOGGER.error("[MasterLnkRcv] ", t);
         }
     }
 
@@ -274,7 +269,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
                     }
                     else {
                         if (true) {
-                            System.out.println("[LinkLayer] " + Utils.DisplayByte(next)
+                        	DNPLogger.LOGGER.info("[LinkLayer] " + Utils.DisplayByte(next)
                                     + " is not a DNP3 header. Byte ignored");
                         }
 
@@ -295,7 +290,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
                     }
                     else {
                         if (true) {
-                            System.out.println("[LinkLayer] " + Utils.DisplayByte(next)
+                        	DNPLogger.LOGGER.info("[LinkLayer] " + Utils.DisplayByte(next)
                                     + " is not a DNP3 header. Byte ignored");
                         }
                     }
@@ -306,7 +301,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
             // Ignore
         }
         catch (IOException e) {
-            e.printStackTrace();
+        	DNPLogger.LOGGER.error("", e);
             handleConnectionError();
         }
     }
@@ -321,9 +316,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
 
         if ((frameRcv.value(4) != ADDRESS_0) || (frameRcv.value(5) != ADDRESS_1)) // wrong address
         {
-            if (DEBUG) {
-                System.out.println("[LinkLayer] dest address doesn't match");
-            }
+            DNPLogger.LOGGER.debug("[LinkLayer] dest address doesn't match");
 
             return false;
         }
@@ -350,17 +343,13 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
         // i receive a message FROM PRIMARY
         // check if its a duplicate frame
         if (((control & 0x10) == 0x10) && (((control & 0x20) == 0x20) == receiveFcb[currentRemoteStation])) {
-            if (DEBUG) {
-                System.out.println("[LinkLayer] duplicate frame");
-            }
+            DNPLogger.LOGGER.debug("[LinkLayer] duplicate frame");
         }
 
         // handle this frame
         switch ((byte) (control & 0x0F)) {
         case RESET_LINK: {
-            if (DEBUG) {
-                System.out.println("[LinkLayer] i send a confirm LPDU : " + !error);
-            }
+            DNPLogger.LOGGER.debug("[LinkLayer] i send a confirm LPDU : " + !error);
 
             sendSecondaryMsg((error) ? NACK : ACK);
         }
@@ -398,15 +387,13 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
 
             // check if a confirmation is requiered
             if ((control & 0x0F) < 4) {
-                if (DEBUG) {
-                    System.out.println("[LinkLayer] i send a confirm LPDU : " + !error);
-                }
+                DNPLogger.LOGGER.debug("[LinkLayer] i send a confirm LPDU : " + !error);
 
                 sendSecondaryMsg((error) ? NACK : ACK);
             }
 
             if (error) {
-                System.out.println("[LinkLayer] error data CRC check!!!!!!!!!");
+            	DNPLogger.LOGGER.info("[LinkLayer] error data CRC check!!!!!!!!!");
             }
 
             // if OK
@@ -431,9 +418,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
     private void secondaryHandler() throws Exception {
         // i'm primary
         // i receive a message FROM SECONDARY
-        if (DEBUG) {
-            System.out.println("[LinkLayer] Receive confirm message");
-        }
+        DNPLogger.LOGGER.debug("[LinkLayer] Receive confirm message");
 
         if (error || ((control & 0x10) == 0x10)) // Data Flow Control bit
         {
@@ -511,9 +496,7 @@ public class LnkRcv extends Thread implements LnkFeatures, InitFeatures {
      * DOCUMENT ME!
      */
     public void handleConnectionError() throws Exception {
-        if (DEBUG) {
-            System.out.println("[LinkLayer] run() : Remote Connection closed.");
-        }
+        DNPLogger.LOGGER.debug("[LinkLayer] run() : Remote Connection closed.");
 
         // if (!STOP) {
         // phyLayer.reconnect();

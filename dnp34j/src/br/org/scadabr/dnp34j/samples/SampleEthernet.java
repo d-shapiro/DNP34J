@@ -3,6 +3,7 @@ package br.org.scadabr.dnp34j.samples;
 import java.util.Calendar;
 import java.util.List;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.session.DNPUser;
 import br.org.scadabr.dnp34j.master.session.config.DNPConfig;
 import br.org.scadabr.dnp34j.master.session.config.SerialParameters;
@@ -39,12 +40,12 @@ public class SampleEthernet {
 				for (DataElement dataElement : binHist) {
 					Calendar calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(dataElement.getTimestamp());
-					System.out.println("Bin 0 changed to "
+					DNPLogger.LOGGER.info("Bin 0 changed to "
 							+ dataElement.getValue() + " at "
 							+ calendar.getTime());
 				}
 			} catch (Exception e) {
-				System.out.println("Poll Falhou! " + e.getMessage());
+				DNPLogger.LOGGER.info("Poll Falhou! " + e.getMessage());
 
 			}
 
@@ -61,20 +62,20 @@ public class SampleEthernet {
 	private static int pollingCount = 0;
 
 	public static void doPoll() throws Exception {
-		System.out.println("Poll!");
+		DNPLogger.LOGGER.info("Poll!");
 		if (reconnecting) {
-			System.out.println("Tentando reconectar!");
+			DNPLogger.LOGGER.info("Tentando reconectar!");
 			timeoutCount = 0;
 			try {
 				try {
 					user.init();
 					reconnecting = false;
 				} catch (Exception e) {
-					System.out.println("Reconnect falhou!");
+					DNPLogger.LOGGER.info("Reconnect falhou!");
 					terminate();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				DNPLogger.LOGGER.error("", e);
 			}
 		} else {
 			if (reconnectNeeded()) {
@@ -94,7 +95,7 @@ public class SampleEthernet {
 					}
 					timeoutCount = 0;
 				} catch (Exception e) {
-					System.out.println("[DNP3Master] polling failed!");
+					DNPLogger.LOGGER.info("[DNP3Master] polling failed!");
 					timeoutCount++;
 				}
 

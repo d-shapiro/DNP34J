@@ -1,5 +1,8 @@
 package br.org.scadabr.dnp34j.master.layers.application;
 
+import java.util.logging.Logger;
+
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.AppFeatures;
 import br.org.scadabr.dnp34j.master.common.DataMapFeatures;
 import br.org.scadabr.dnp34j.master.common.DataObject;
@@ -89,9 +92,8 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
         transportLayer = user.getTranspLayer();
         dataMap = new DataMap(user);
-        if (DEBUG) {
-            System.out.println("[ApplicationLayer] initialized");
-        }
+
+        DNPLogger.LOGGER.debug("[ApplicationLayer] initialized");
     }
 
     // =============================================================================
@@ -107,15 +109,13 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
                 appRcvLock.lock();
 
-                if (DEBUG) {
-                    System.out.println("[ApplicationLayer] frame from TransportLayer !");
-                }
+                DNPLogger.LOGGER.debug("[ApplicationLayer] frame from TransportLayer !");
+                
                 handle(appRcvBuffer.readBytes(appRcvQueue.pop()));
             }
         }
         catch (Throwable t) {
-            System.out.print("[MasterAppRcv] ");
-            t.printStackTrace();
+        	DNPLogger.LOGGER.error("[MasterAppRcv] ", t);
         }
     }
 
@@ -135,14 +135,12 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
         // compliance
         if ((AC & 0x0F) != appLastSeq) {
-            if (DEBUG) {
-                System.out.println("[ApplicationLayer] ERROR : doesn't match with the message expected");
-                System.out.println("[ApplicationLayer] ERROR : number expected : " + appLastSeq);
-            }
+            DNPLogger.LOGGER.debug("[ApplicationLayer] ERROR : doesn't match with the message expected");
+            DNPLogger.LOGGER.debug("[ApplicationLayer] ERROR : number expected : " + appLastSeq);
         }
 
         if (FC == UNSOLICITED_RESPONSE)
-            System.out.println("Unsolicited Message!");
+        	DNPLogger.LOGGER.info("Unsolicited Message!");
 
         // handle a confirm or a response msg
         if (FC == CONFIRM) {
@@ -159,21 +157,15 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
     private void handleConfirmMsg() throws Exception {
         // compliance
         if (!appSnd.getConAppSndLock().isLocked()) {
-            if (DEBUG) {
-                System.out.println("[ApplicationLayer] ERROR : i was not wating for a confirm message !");
-            }
+            DNPLogger.LOGGER.debug("[ApplicationLayer] ERROR : i was not wating for a confirm message !");
         }
 
         if ((AC & 0xc0) != 0xc0) {
-            if (DEBUG) {
-                System.out.println("[ApplicationLayer] ERROR : error found by application control");
-            }
+            DNPLogger.LOGGER.debug("[ApplicationLayer] ERROR : error found by application control");
         }
 
         // unlock next request
-        if (DEBUG) {
-            System.out.println("[ApplicationLayer] received a confirm message. unlock send message");
-        }
+        DNPLogger.LOGGER.debug("[ApplicationLayer] received a confirm message. unlock send message");
 
         appSnd.getConAppSndLock().unlock();
     }
@@ -184,9 +176,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
     private void handleResponseMsg() throws Exception {
         if (appFirstFrame && ((AC & 0x80) != 0x80)) // i'm waiting for a first
         {
-            if (DEBUG) {
-                System.out.println("[ApplicationLayer] ERROR : it's not the first frame");
-            }
+            DNPLogger.LOGGER.debug("[ApplicationLayer] ERROR : it's not the first frame");
         }
 
         // send a confirm msg
@@ -205,7 +195,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
                 updateDatamap(new Buffer(M, frameRcv.value()));
             }
             catch (Exception e) {
-                e.printStackTrace();
+            	DNPLogger.LOGGER.error("", e);
             }
         }
 
@@ -250,7 +240,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
             if (dataLength < 0) {
                 discard = true;
-                System.out.println("Group: " + group + " Variation: " + variation + " dataLength: " + dataLength);
+                DNPLogger.LOGGER.info("Group: " + group + " Variation: " + variation + " dataLength: " + dataLength);
             }
 
             // nao suportada e nao descartavel!
@@ -448,7 +438,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
             hasBeenPushed = true;
         }
         catch (Exception e) {
-            e.printStackTrace();
+        	DNPLogger.LOGGER.error("", e);
         }
         return hasBeenPushed;
     }

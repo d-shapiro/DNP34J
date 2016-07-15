@@ -9,6 +9,7 @@
  */
 package br.org.scadabr.dnp34j.master.layers;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.AppFeatures;
 import br.org.scadabr.dnp34j.master.common.DataMapFeatures;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
@@ -95,7 +96,7 @@ public class User extends Thread implements InitFeatures, DataMapFeatures, AppFe
         boolean linkStatus = false;
 
         do {
-            System.out.println("[User] - Reset Link " + retries);
+        	DNPLogger.LOGGER.info("[User] - Reset Link " + retries);
             linkStatus = lnkSnd.getLnkRcv().initLink(3000);
 
             if (!linkStatus)
@@ -142,9 +143,7 @@ public class User extends Thread implements InitFeatures, DataMapFeatures, AppFe
 
         appRcv.start();
 
-        if (DEBUG) {
-            System.out.println("[UserLayer] initialized");
-        }
+        DNPLogger.LOGGER.debug("[UserLayer] initialized");
     }
 
     /**
@@ -166,8 +165,8 @@ public class User extends Thread implements InitFeatures, DataMapFeatures, AppFe
             appRcv.getTransportLayer().getLnkRcv().getPhyLayer().close();
         }
         catch (Exception e) {
-            System.out.println("[User] - stopUser() failed");
-            System.out.println("[User] - Exception throwed");
+        	DNPLogger.LOGGER.info("[User] - stopUser() failed");
+        	DNPLogger.LOGGER.info("[User] - Exception throwed");
             throw new Exception(e);
         }
     }
@@ -278,9 +277,7 @@ public class User extends Thread implements InitFeatures, DataMapFeatures, AppFe
      * @throws Exception
      */
     public synchronized void send(Buffer aFrame) throws Exception {
-        if (DEBUG) {
-            System.out.println("[UserLayer] push APDU " + Utils.Display(aFrame.value()));
-        }
+        DNPLogger.LOGGER.debug("[UserLayer] push APDU " + Utils.Display(aFrame.value()));
 
         userRcvLock.lock();
 
@@ -296,7 +293,7 @@ public class User extends Thread implements InitFeatures, DataMapFeatures, AppFe
             userRcvLock.unlock();
         }
         catch (Exception e) {
-            e.printStackTrace();
+        	DNPLogger.LOGGER.error("", e);
         }
         return sent;
     }

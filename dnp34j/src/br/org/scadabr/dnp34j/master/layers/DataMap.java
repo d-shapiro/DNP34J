@@ -9,6 +9,7 @@
  */
 package br.org.scadabr.dnp34j.master.layers;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.DataMapFeatures;
 import br.org.scadabr.dnp34j.master.common.DataObject;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
@@ -280,10 +281,8 @@ public class DataMap implements DataMapFeatures, InitFeatures {
         if (user.getDatabase() != null)
             user.getDatabase().writeRecord(rec);
         // elem.writeNewRecord(rec);
-        if (DEBUG) {
-            System.out.println("[DataMap " + this + "] Set : (G,V,I, value) " + group + " variation:" + variation
+        DNPLogger.LOGGER.debug("[DataMap " + this + "] Set : (G,V,I, value) " + group + " variation:" + variation
                     + " index: " + index);
-        }
     }
 
     public void setUser(DNPUser user) {

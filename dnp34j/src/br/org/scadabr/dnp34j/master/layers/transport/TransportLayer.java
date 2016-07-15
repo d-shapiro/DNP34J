@@ -1,5 +1,6 @@
 package br.org.scadabr.dnp34j.master.layers.transport;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.AppFeatures;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 import br.org.scadabr.dnp34j.master.common.utils.Buffer;
@@ -85,8 +86,8 @@ public class TransportLayer implements AppFeatures, InitFeatures {
     // handle a transport frame and redirect it to application layer
     public void handleTransportMsg(Buffer trsFrame, int currentRemoteStation) throws Exception {
         byte TH = trsFrame.readByte();
-        if (DEBUG && !checkTransportMsg(TH, currentRemoteStation)) {
-            System.out.println("[Transport] ERROR : transport frame incorrect. ");
+        if (!checkTransportMsg(TH, currentRemoteStation)) {
+        	DNPLogger.LOGGER.debug("[Transport] ERROR : transport frame incorrect. ");
         }
         else {
             pushUpper(TH, trsFrame, currentRemoteStation);
@@ -101,9 +102,7 @@ public class TransportLayer implements AppFeatures, InitFeatures {
 
         if (trsFirstFrame[currentRemoteStation]) {
             if ((TH & 0x40) != 0x40) {
-                if (DEBUG) {
-                    System.out.println("[Transport] ERROR : not the first transport frame");
-                }
+                DNPLogger.LOGGER.debug("[Transport] ERROR : not the first transport frame");
 
                 valid = false;
             }
@@ -114,10 +113,8 @@ public class TransportLayer implements AppFeatures, InitFeatures {
         else // check if it's the frame expected
         {
             if (trsLastSeq[currentRemoteStation] != trsSeq) {
-                if (DEBUG) {
-                    System.out.println("[Transport] ERROR : RcvSeq = " + trsSeq + ", ExpSeq = "
+                DNPLogger.LOGGER.debug("[Transport] ERROR : RcvSeq = " + trsSeq + ", ExpSeq = "
                             + trsLastSeq[currentRemoteStation]);
-                }
 
                 valid = false;
             }
@@ -126,7 +123,7 @@ public class TransportLayer implements AppFeatures, InitFeatures {
 
             trsLastSeq[currentRemoteStation] = (byte) ((trsLastSeq[currentRemoteStation] + 1) % 64);
         }
-        System.out.println("Transport Layer: " + valid);
+        DNPLogger.LOGGER.debug("Transport Layer: " + valid);
         return valid;
     }
 

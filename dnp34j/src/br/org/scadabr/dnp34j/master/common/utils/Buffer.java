@@ -9,6 +9,7 @@
  */
 package br.org.scadabr.dnp34j.master.common.utils;
 
+import br.org.scadabr.dnp34j.logging.DNPLogger;
 import br.org.scadabr.dnp34j.master.common.InitFeatures;
 
 /**
@@ -131,16 +132,11 @@ public class Buffer implements InitFeatures {
 	 */
 	public void incrOffset(int length) {
 		if (length > size) {
-			if (DEBUG) {
-				System.out.println("[Buffer] WARNING : incrOffset too large");
-			}
+			DNPLogger.LOGGER.debug("[Buffer] WARNING : incrOffset too large");
 		}
 
 		if (length > length()) {
-			if (DEBUG) {
-				System.out
-						.println("[Buffer] ERROR : incrOffset -> offset overflow");
-			}
+			DNPLogger.LOGGER.debug("[Buffer] ERROR : incrOffset -> offset overflow");
 		}
 
 		offset = (offset + length) % size;
@@ -236,10 +232,7 @@ public class Buffer implements InitFeatures {
 	 */
 	public byte readByte() {
 		if (length() == 0) {
-			if (DEBUG) {
-				System.out
-						.println("[Buffer] ERROR : readByte -> nothing to read");
-			}
+			DNPLogger.LOGGER.debug("[Buffer] ERROR : readByte -> nothing to read");
 		}
 
 		byte result = buffer[offset];
