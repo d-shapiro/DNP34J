@@ -254,7 +254,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
             }
 
             // nao suportada e nao descartavel!
-            if (dataLength == -1) {
+            if (dataLength == -1 && group != 0) {
                 throw new Exception("Invalid Application frame received!");
             }
             switch (qualField) {
@@ -262,6 +262,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
             case START_STOP_8: {
                 int start = Utils.byte2int(aFrame.readByte());
                 int stop = Utils.byte2int(aFrame.readByte());
+                if (group == 0) dataLength = handleGroup0(aFrame, variation);
                 int length = (((stop - start + 1) * Math.abs(dataLength)) + 7) / 8;
 
                 if (!discard) {
@@ -278,6 +279,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
             case START_STOP_16: {
                 int start = (Utils.byte2int(aFrame.readByte()) + ((aFrame.readByte() << 8) & 0xFF00));
                 int stop = (Utils.byte2int(aFrame.readByte()) + ((aFrame.readByte() << 8) & 0xFF00));
+                if (group == 0) dataLength = handleGroup0(aFrame, variation);
                 int length = (((stop - start + 1) * Math.abs(dataLength)) + 7) / 8;
                 if (!discard) {
                     dataMap.set(group, variation, start, stop, aFrame.readBytes(length));
@@ -305,6 +307,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
             case QUANTITY_8: {
                 int quantity = Utils.byte2int(aFrame.readByte());
+                if (group == 0) dataLength = handleGroup0(aFrame, variation);
                 int length = ((quantity * Math.abs(dataLength)) + 7) / 8;
 
                 if (!discard) {
@@ -319,6 +322,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
 
             case QUANTITY_16: {
                 int quantity = (Utils.byte2int(aFrame.readByte()) + ((aFrame.readByte() << 8) & 0xFF00));
+                if (group == 0) dataLength = handleGroup0(aFrame, variation);
                 int length = ((quantity * Math.abs(dataLength)) + 7) / 8;
 
                 if (!discard) {
@@ -339,6 +343,7 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
                 if (!discard) {
                     for (int i = 0; i < values.length; i++) {
                         values[i] = Utils.byte2int(aFrame.readByte());
+                        if (group == 0) dataLength = handleGroup0(aFrame, variation);
 
                         int length = (dataLength + 7) / 8;
                         dataObjects[i] = new DataObject(group, variation, aFrame.readBytes(length));
@@ -347,9 +352,19 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
                     dataMap.set(group, variation, values, dataObjects, qualField);
                 }
                 else {
-                    dataLength *= -1;
-                    int numBytes = (dataLength / 8) * values.length + values.length;
-                    aFrame.readBytes(numBytes);
+                	if (group == 0) {
+                		for (int i = 0; i < values.length; i++) {
+                			aFrame.readByte();
+                			dataLength = handleGroup0(aFrame, variation);
+                			dataLength *= -1;
+                			int length = (dataLength + 7) / 8;
+                			aFrame.readBytes(length);
+                		}
+                	} else {
+                		dataLength *= -1;
+                		int numBytes = (dataLength / 8) * values.length + values.length;
+                		aFrame.readBytes(numBytes);
+                	}
                 }
             }
 
@@ -362,7 +377,8 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
                 if (!discard) {
                     for (int i = 0; i < values.length; i++) {
                         values[i] = (Utils.byte2int(aFrame.readByte()) + ((aFrame.readByte() << 8) & 0xFF00));
-
+                        
+                        if (group == 0) dataLength = handleGroup0(aFrame, variation);
                         int length = (dataLength + 7) / 8;
                         dataObjects[i] = new DataObject(group, variation, aFrame.readBytes(length));
                     }
@@ -370,15 +386,36 @@ public class AppRcv extends Thread implements AppFeatures, InitFeatures, DataMap
                     dataMap.set(group, variation, values, dataObjects, qualField);
                 }
                 else {
-                    dataLength *= -1;
-                    int numBytes = (dataLength / 8) * values.length + values.length * 2;
-                    aFrame.readBytes(numBytes);
+                	if (group == 0) {
+                		for (int i = 0; i < values.length; i++) {
+                			aFrame.readByte();
+                			aFrame.readByte();
+                			dataLength = handleGroup0(aFrame, variation);
+                			dataLength *= -1;
+                			int length = (dataLength + 7) / 8;
+                			aFrame.readBytes(length);
+                		}
+                	} else {
+                		dataLength *= -1;
+                		int numBytes = (dataLength / 8) * values.length + values.length * 2;
+                		aFrame.readBytes(numBytes);
+                	}
                 }
 
             }
             }
 
         }
+    }
+    
+    private static int handleGroup0(Buffer aFrame, byte variation) {
+    	if (Utils.byte2int(variation) == 254) {
+    		return 0;
+    	}
+    	int code = Utils.byte2int(aFrame.readByte());
+    	int byteCount =  (code == 255) ? 256 + Utils.byte2int(aFrame.readByte()) : Utils.byte2int(aFrame.readByte());
+    	return byteCount * -8;
+    	
     }
 
     // ///////////////////////////////////////////////////////////////////////

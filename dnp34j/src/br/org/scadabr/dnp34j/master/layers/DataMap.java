@@ -238,8 +238,7 @@ public class DataMap implements DataMapFeatures, InitFeatures {
             break;
 
         case COUNTER: {
-            // rec.setValue(DataObject.unformatFloat(group, variation, data,
-            // element.getScale(), element.getOffset()));
+            rec.setValue("" + (int) DataObject.unformatFloat(group, variation, data, 1, 0));
             // rec.quality = DataObject.setFlag(rec);
         }
 

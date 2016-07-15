@@ -9,6 +9,9 @@
  */
 package br.org.scadabr.dnp34j.master.common;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import br.org.scadabr.dnp34j.master.common.utils.Utils;
 
 /**
@@ -51,57 +54,95 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 			8 }, // v02 : Bin Input with status
 			{ 8, // v01 : Bin Input Change
 					56 // v02 : Bin Input Change with time
-					, 24 } }, // v03 : Bin Input Change with relative time
+					, 24 }, // v03 : Bin Input Change with relative time
+					{-2, -8}, {-8, -56, -24}}, 
 
 			{ { 1, // v01 : Bin Output
 					8 }, // v02 : Bin Output with status
-					null,
+					{ 8,  // v01 : Bin Output Change
+						56 }, // v02 : Bin Output Change with time
 
 					{ 88 // v01 : Control Relay Output Block
-					} },
+					}, {-8, -56} },
 
 			{ { 40, // v01 : 32-Bit Bin Counter
 					24, // v02 : 16-Bit Bin Counter
-					0, 0, 32, // v05 : 32-Bit Counter without Flag
-					16 }, // v06 : 16-Bit Counter without Flag
-					{ -40, -24, -40, -24, -88, -72, -88, -72, -32 },
+					-40, -24, 32, // v05 : 32-Bit Counter without Flag
+					16, -32, -16 }, // v06 : 16-Bit Counter without Flag
+					{ -40, -24, -40, -24, -88, -72, -88, -72, -32, -16, -32, -16 },
 
 					{ 40, // v01 : 32-Bit Counter Change without time
 							24, // v02 : 16-Bit Counter Change without time
-							0, 0, 88, // v05 : 32-Bit Counter Change with time
-							72 } },
+							-40, -24, 88, // v05 : 32-Bit Counter Change with time
+							72, -88, -72 },
+							{-40, -24, -40, -24, -88, -72, -88, -72}},
 
 			{ { 40, // v01 : 32-Bit Ana Input
 					24, // v02 : 16-Bit Ana Input
 					32, // v03 : 32-Bit Ana Input without Flag
-					16 }, // v04 : 16-Bit Ana Input without Flag
-					null,
+					16, // v04 : 16-Bit Ana Input without Flag
+					40, // v05 : Single-Precision Float Ana Input
+					72 }, // v06 : Double-Precision Float Ana Input
+					{-40, -24, -88, -72, -32, -16, -40, -72},
 
 					{ 40, // v01 : 32-Bit Ana Change Event without Time
 							24, // v02 : 16-Bit Ana Change Event without Time
 							88, // v03 : 32-Bit Ana Change Event with Time
-							72 } },
+							72, // v04 : 16-Bit Ana Change Event with Time
+							40, // v05 : Single-Precision Float Ana Change without Time
+							72, // v06 : Double-Precision Float Ana Change without Time
+							88, // v07 : Single-Precision Float Ana Change with Time
+							120 }, // v08 : Double-Precision Float Ana Change with Time
+							{-40, -24, -88, -72, -40, -72, -88, -120},
+							{-16, -32, -32} }, 
 
 			{ { 40, // v01 : 32-Bit Ana Output Status
-					24 }, // v02 : 16-Bit Ana Output Status
+					24, // v02 : 16-Bit Ana Output Status
+					40, // v03 : Single-Precision Float Ana Output Status
+					72 }, // v04 : Double-Precision Float Ana Output Status
+					
 					{ 40, // v01 : 32-Bit Ana Output Block
-							24 // v02 : 16-Bit Ana Output Block
-					} },
+							24, // v02 : 16-Bit Ana Output Block
+							40, // v03 : Single-Precision Float Ana Output Block
+							72 // v04 : Double-Precision Float Ana Output Block
+					}, 
+					{40, // v01 : 32-Bit Ana Output Change Event without Time
+						24, // v02 : 16-Bit Ana Output Change Event without Time
+						88, // v03 : 32-Bit Ana Output Change Event with Time
+						72, // v04 : 16-Bit Ana Output Change Event with Time
+						40, // v05 : Single-Precision Float Ana Output Change without Time
+						72, // v06 : Double-Precision Float Ana Output Change without Time
+						88, // v07 : Single-Precision Float Ana Output Change with Time
+						120}, // v08 : Double-Precision Float Ana Output Change with Time
+						{-40, -24, -88, -72, -40, -72, -88, -120} }, 
 
-			{ { 48 }, // v01 : Time and Date
-					{ -48 },
+			{ { 48, -80, 48, -88 }, // v01 : Time and Date
+					{ -48, -48 },
 
 					{ 16, // v01 : Time Delay Coarse
 							16 // v02 : Time Delay Fine
 					} },
 
-			{ { 0 // v 01 : doesn't carry any information in itself
+			{ { 0, 0, 0, 0 // v 01 : doesn't carry any information in itself
 			} },
 
 			null,
 
 			{ { 1 // v 01 : Internal Indications
-			} } };
+			}, { -24 } },
+			
+			null,
+			
+			{ null, 
+				{-16, -32, -64},
+				{-8} },
+				
+			null,
+			
+			{ null,
+				{ -56 },
+				{ -56, -104}}
+			};
 
 	/**
 	 * Object group
@@ -252,7 +293,11 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 		try {
 			res = size[first4bits][last4bits][v - 1];
 		} catch (Exception e) {
-			res = -1;
+			if (first4bits == 11) {
+				res = v;
+			} else {
+				res = -1;
+			}
 		}
 
 		return res;
@@ -359,7 +404,7 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 	 * 
 	 * @return extracted value
 	 */
-	public static float unformatFloat(byte group, byte variation, byte[] data,
+	public static double unformatFloat(byte group, byte variation, byte[] data,
 			int scale, int offset) {
 		// value
 		long state = 0;
@@ -370,25 +415,54 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 			int i = 0;
 
 			// variation < 3 = com flag
-			if ((variation < 3)) {
+			if (hasFlag(group, variation)) {
 				i++;
 			}
 
-			state = ((data[i++] & 0xFF) | ((data[i++] << 8) & 0xFF00));
-			// 32 bits?
-			if ((variation % 2) == 1) {
-				state |= (((data[i++] << 16) & 0xFF0000) | ((data[i++] << 24) & 0xFF000000));
+			if (isFloat(group, variation)) {
+				double fstate;
+				if ((variation % 2) == 1) {
+					fstate = ByteBuffer.wrap(data, i, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				} else {
+					fstate = ByteBuffer.wrap(data, i, 8).order(ByteOrder.LITTLE_ENDIAN).getDouble();
+				}
+				return (fstate - offset) / scale;
 			} else {
-				if ((state & 0x8000) == 0x8000) {
-					state |= 0xFFFF0000;
+				state = ((data[i++] & 0xFF) | ((data[i++] << 8) & 0xFF00));
+				// 32 bits?
+				if ((variation % 2) == 1) {
+					state |= (((data[i++] << 16) & 0xFF0000) | ((data[i++] << 24) & 0xFF000000));
+				} else {
+					if ((state & 0x8000) == 0x8000) {
+						state |= 0xFFFF0000;
+					}
 				}
 			}
 		}
 		// apply scale & offset to result
-		float result = (state - offset) / scale;
+		double result = (state - offset) / scale;
 
 		// System.out.println(result);
 		return result;
+	}
+	
+	public static boolean hasFlag(byte group, byte variation) {
+		int rem = group % 10;
+		if (rem == 2 || rem == 3 || group == 40) return true;
+		if (group == 34 || group == 41) return false;
+		if (group == 20) return (variation < 5);
+		if (group == 21) return (variation < 9);
+		if (group == 30) return (variation < 3 || variation > 4);
+		if (group == 31) return (variation < 5 || variation > 6);
+		return false;
+	}
+	
+	public static boolean isFloat(byte group, byte variation) {
+		if (group < 30 || group > 43) return false;
+		if (group == 31) return (variation > 6);
+		if (group > 33 && group < 42) return (variation > 2);
+		return (variation > 4);
+
 	}
 
 	public static float unformatCounterFloat(byte group, byte variation,

@@ -100,15 +100,25 @@ public class DNPUser implements InitFeatures, DataMapFeatures, AppFeatures {
         return request;
     }
 
-    public Buffer buildAnalogControlCommand(byte operateMode, int index, int value) {
-        Buffer commandFrame = appSnd.buildRequestMsg(operateMode, ANALOG_OUTPUT_COMMAND, (byte) 2, new int[] { index },
-                WITH_DATA);
-
-        byte[] valueOnBytes = toBytes(value, 2);
-        commandFrame.setMarker(7);
-        commandFrame.writeByte(valueOnBytes[0]);
-        commandFrame.setMarker(8);
-        commandFrame.writeByte(valueOnBytes[1]);
+    public Buffer buildAnalogControlCommand(byte operateMode, int index, double value) {
+    	Buffer commandFrame;
+    	byte[] valueOnBytes;
+    	
+    	if ((int) value == value) {
+    		commandFrame = appSnd.buildRequestMsg(operateMode, ANALOG_OUTPUT_COMMAND, (byte) 1, new int[] { index },
+                    WITH_DATA);
+    		int ivalue = (int) value;
+    		valueOnBytes = toBytes(ivalue, 4);
+    	} else {
+    		commandFrame = appSnd.buildRequestMsg(operateMode, ANALOG_OUTPUT_COMMAND, (byte) 4, new int[] { index },
+                    WITH_DATA);
+    		valueOnBytes = toBytes(value);
+    	}
+    	
+    	for (int i=0; i<valueOnBytes.length; i++) {
+    		commandFrame.setMarker(7+i);
+            commandFrame.writeByte(valueOnBytes[i]);
+    	}
         commandFrame.writeByte((byte) 0x00);
 
         return commandFrame;
@@ -168,6 +178,15 @@ public class DNPUser implements InitFeatures, DataMapFeatures, AppFeatures {
             result[i] = (byte) ((value >> (8 * i)) & 0xFF);
         }
         return result;
+    }
+    
+    private byte[] toBytes(double value) {
+    	byte[] output = new byte[8];
+    	long lng = Double.doubleToLongBits(value);
+    	for(int i = 0; i < 8; i++) {
+    		output[i] = (byte)((lng >> (8 * i)) & 0xff);
+    	}
+    	return output;
     }
 
     private boolean resetLink(long timeout) throws Exception {
