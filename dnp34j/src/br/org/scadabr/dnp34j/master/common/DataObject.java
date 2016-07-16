@@ -56,7 +56,8 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 			{ 8, // v01 : Bin Input Change
 					56 // v02 : Bin Input Change with time
 					, 24 }, // v03 : Bin Input Change with relative time
-					{-2, -8}, {-8, -56, -24}}, 
+					
+					{2, 8}, {8, 56, 24}}, // Double Inputs & Double Input Events
 
 			{ { 1, // v01 : Bin Output
 					8 }, // v02 : Bin Output with status
@@ -331,6 +332,7 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 	 *         type of the data
 	 */
 	public static boolean isValid(byte type, byte g, byte v) {
+		if (type == DBL_IN) return ((g == 3 || g == 4) && (isValid(g, v)));
 		return ((type == (Utils.decimal2Hexa(g) & 0xF0)) && (isValid(g, v)));
 	}
 
@@ -358,6 +360,7 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 	 * @return an object type
 	 */
 	public static byte getObjectType(byte group) {
+		if (group == 3 || group == 4) return DBL_IN;
 		return (byte) (Utils.decimal2Hexa(group) & 0xF0);
 	}
 
@@ -513,6 +516,30 @@ public class DataObject implements InitFeatures, DataMapFeatures {
 		result ^= inverted;
 
 		return new Boolean(result);
+	}
+	
+	/**
+	 * Extract a Double Binary value from an array of bytes, formatted with group and
+	 * variation attributes Suits for Double Input
+	 * 
+	 * @param group
+	 *            Data Object group
+	 * @param variation
+	 *            Data Object variation
+	 * @param data
+	 *            data to extract
+	 * @return extracted value
+	 */
+	public static String unformatDoubleState(byte group, byte variation, byte[] data) {
+
+		boolean on = ((data[0] & 0x80) != 0);
+		boolean off = ((data[0] & 0x40) != 0);
+
+		if (!on) {
+			return off ? "Off" : "Intermediate";
+		} else {
+			return off ? "Indeterminate" : "On";
+		}
 	}
 
 	// ////////////////////////////////////////////////////////////////////////

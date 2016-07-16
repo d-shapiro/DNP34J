@@ -95,14 +95,16 @@ public class DataMap implements DataMapFeatures, InitFeatures {
      * @return a range of Data Objects
      */
     public void set(byte group, byte variation, int start, int stop, byte[] newDataObjects) {
-        if (DataObject.length(group, variation) < 0) {
+    	int length = DataObject.length(group, variation);
+    	if (length < 0) {
             return;
         }
 
-        if (DataObject.length(group, variation) == 1) {
+        if (length == 1) {
             setBits(group, variation, start, stop, newDataObjects);
-        }
-        else {
+        } else if (length == 2) {
+        	setDBits(group, variation, start, stop, newDataObjects);
+        } else {
             setBytes(group, variation, start, stop, newDataObjects);
         }
     }
@@ -139,6 +141,43 @@ public class DataMap implements DataMapFeatures, InitFeatures {
                 }
 
                 newDO[0] = (byte) ((newDataObjects[i] << (7 - j)) & 0x80);
+                setDB(index, newDO, group, variation);
+            }
+        }
+    }
+    
+    /**
+     * Set double bits objects of a group/variation. Return a copy of data joined in
+     * the request Range : [index[start], index[start+1], ... ,index[stop]]
+     * 
+     * @param group
+     *            Object group
+     * @param variation
+     *            Object variation
+     * @param start
+     *            range start
+     * @param stop
+     *            range stop
+     * @param newDataObjects
+     *            updated objects to submit
+     * 
+     * @return a range of Data Objects
+     */
+    private void setDBits(byte group, byte variation, int start, int stop, byte[] newDataObjects) {
+        byte[] newDO = new byte[1];
+
+        // for each byte
+        for (int i = 0; i < newDataObjects.length; i++) {
+            // for each double-bit in this byte
+            for (int j = 0; j < 4; j++) {
+                // index
+                int index = start + (i * 4) + j;
+
+                if (stop < index) {
+                    break;
+                }
+
+                newDO[0] = (byte) ((newDataObjects[i] << (2 * (3 - j))) & 0xc0);
                 setDB(index, newDO, group, variation);
             }
         }
@@ -204,9 +243,15 @@ public class DataMap implements DataMapFeatures, InitFeatures {
         rec.setTimestamp(System.currentTimeMillis());
         // set value & Q_INVALID quality
         switch (DataObject.getObjectType(group)) {
+        case DBL_IN: {
+        	rec.setValue(DataObject.unformatDoubleState(group, variation, data).toString());
+        }
+        
+        	break;
+        	
         case BIN_IN: {
-            rec.setValue(DataObject.unformatBool(group, variation, data, (false)).toString());
-
+        		rec.setValue(DataObject.unformatBool(group, variation, data, (false)).toString());
+        	
             if (variation == 2) {
                 rec.setQuality(data[0]);
             }

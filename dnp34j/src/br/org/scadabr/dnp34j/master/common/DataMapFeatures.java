@@ -31,6 +31,11 @@ public interface DataMapFeatures {
   public byte BIN_IN = (byte) 0x00;
 
   /**
+   * Double Input Objects, group 0x
+   */
+  public byte DBL_IN = (byte) 0x03;
+  
+  /**
    * Binary Output Objects, group 1x
    */
   public byte BIN_OUT = (byte) 0x10;

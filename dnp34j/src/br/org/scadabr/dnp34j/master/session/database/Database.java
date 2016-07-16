@@ -8,6 +8,7 @@ import br.org.scadabr.dnp34j.master.common.DataMapFeatures;
 
 public class Database implements DataMapFeatures {
 	private HashMap<Integer, DataBuffer> binaryInputPoints;
+	private HashMap<Integer, DataBuffer> doubleInputPoints;
 	private HashMap<Integer, DataBuffer> binaryOutputPoints;
 	private HashMap<Integer, DataBuffer> counterInputPoints;
 	private HashMap<Integer, DataBuffer> analogInputPoints;
@@ -17,6 +18,7 @@ public class Database implements DataMapFeatures {
 
 	public Database() {
 		binaryInputPoints = new HashMap<Integer, DataBuffer>();
+		doubleInputPoints = new HashMap<Integer, DataBuffer>();
 		binaryOutputPoints = new HashMap<Integer, DataBuffer>();
 		counterInputPoints = new HashMap<Integer, DataBuffer>();
 		analogInputPoints = new HashMap<Integer, DataBuffer>();
@@ -30,6 +32,13 @@ public class Database implements DataMapFeatures {
 	public List<DataElement> readBinaryInputPoint(int index) {
 		if (binaryInputPoints.get(index) != null)
 			return binaryInputPoints.get(index).readAndPop();
+		else
+			return null;
+	}
+	
+	public List<DataElement> readDoubleInputPoint(int index) {
+		if (doubleInputPoints.get(index) != null)
+			return doubleInputPoints.get(index).readAndPop();
 		else
 			return null;
 	}
@@ -53,6 +62,10 @@ public class Database implements DataMapFeatures {
 			if (binaryInputPoints.get(index) == null)
 				binaryInputPoints.put(index, new DataBuffer());
 			return binaryInputPoints.get(index).readAndPop();
+		case 0x03:
+			if (doubleInputPoints.get(index) == null)
+				doubleInputPoints.put(index, new DataBuffer());
+			return doubleInputPoints.get(index).readAndPop();
 		case 0x10:
 			if (binaryOutputPoints.get(index) == null)
 				binaryOutputPoints.put(index, new DataBuffer());
@@ -81,6 +94,10 @@ public class Database implements DataMapFeatures {
 			if (binaryInputPoints.get(index) == null)
 				binaryInputPoints.put(index, new DataBuffer());
 			return binaryInputPoints.get(index);
+		case 0x03:
+			if (doubleInputPoints.get(index) == null)
+				doubleInputPoints.put(index, new DataBuffer());
+			return doubleInputPoints.get(index);
 		case 0x10:
 			if (binaryOutputPoints.get(index) == null)
 				binaryOutputPoints.put(index, new DataBuffer());
@@ -105,10 +122,19 @@ public class Database implements DataMapFeatures {
 	public HashMap<Integer, DataBuffer> getBinaryInputPoints() {
 		return binaryInputPoints;
 	}
+	
+	public HashMap<Integer, DataBuffer> getDoubleInputPoints() {
+		return doubleInputPoints;
+	}
 
 	public void setBinaryInputPoints(
 			HashMap<Integer, DataBuffer> binaryInputPoints) {
 		this.binaryInputPoints = binaryInputPoints;
+	}
+	
+	public void setDoubleInputPoints(
+			HashMap<Integer, DataBuffer> doubleInputPoints) {
+		this.doubleInputPoints = doubleInputPoints;
 	}
 
 	public HashMap<Integer, DataBuffer> getBinaryOutputPoints() {
