@@ -98,7 +98,7 @@ public class TransportLayer implements AppFeatures, InitFeatures {
     private boolean checkTransportMsg(byte TH, int currentRemoteStation) throws Exception {
         boolean valid = true;
 
-        byte trsSeq = (byte) (TH & 0x2F);
+        byte trsSeq = (byte) (TH & 0x3F);
 
         if (trsFirstFrame[currentRemoteStation]) {
             if ((TH & 0x40) != 0x40) {
